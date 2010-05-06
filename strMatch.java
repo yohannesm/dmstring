@@ -2,11 +2,13 @@ import java.util.*;
 import java.io.*;
 import java.util.regex.*;
 
+
 public class strMatch  {
         
+  final static int BUF_SIZE = 2000;
 	static int hashValue = 0;
         //Copied from our FSM project
-        public static String read(String inFile) throws Exception {
+        public static String readPattern(String inFile) throws Exception {
 
 	FileInputStream in = new FileInputStream(inFile);
 	StringBuffer input = new StringBuffer();
@@ -31,12 +33,17 @@ public class strMatch  {
 		}
 		return patternList;
 	}
+       
+ 
 
-	public static void main(String[] args) {
-	 String test1 = new String("abcdefghi");
-	 String p1 = new String("efk");
-	 System.out.println(RK(p1, test1) );
-		
+	public static void main(String[] args)  {
+         try{  
+	 String p1 = new String("beer");
+	 System.out.println(RK(p1, "test1.txt") );
+	 }
+	 catch(Exception e){
+	    System.err.println(e.getMessage() );
+	 }	
 		} //end main
 
 	//Marcell driving
@@ -64,24 +71,51 @@ public class strMatch  {
 	}
 
 	//Marcell driving
-	public static boolean RK(String pattern, String text) {
+	public static boolean RK(String pattern, String inFile) throws Exception{
 		int hashPat = hashPattern(pattern);
+	FileInputStream in = new FileInputStream(inFile);
+	StringBuffer input = new StringBuffer();
+
+	while(in.available()>0  && (input.length() < BUF_SIZE )){
+	    char c = (char) in.read();
+	    if( c == '\r'){
+	     if (in.available() > 0) {
+	      char c2 = (char) in.read();
+	      if( c2 != '\n' ) input.append( '\n' );
+	      c = c2 ;   
+	    }
+	    else c = '\n';
+	    }
+	    input.append( c );
+	}
+
+	String text = input.toString();
 		
   	int m = pattern.length();
-  	int n = text.length();
         Queue<Character> q1 = new LinkedList<Character>();
-  	for(int i =0; i<n; i++){
+  	for(int i =0; i< text.length(); i++){
+	if(in.available() >0 && (i==text.length()-1 )){
+	     input.delete(0, BUF_SIZE - m );
+	while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
+	    input.append( (char) in.read() );
+	}
+	i = i- (BUF_SIZE - m);
+	text = input.toString();
+	}
   	int j = 0;
 	hash(m, q1, text.charAt(i));
-	       if(hashValue == hashPat){
+	       if(hashValue == hashPat && (i-m+1>= 0)){
      		for(j=0; j<m && pattern.charAt(j)==text.charAt(i-m+1+j); j++){
      		}
-     		if (j==m) 
+     		if (j==m) {
+		 in.close();
         	 return true;
+		 }
      		}
 		
   
-	}
+	} 
+	        in.close();
 		return false;
 	} //end RK
 
