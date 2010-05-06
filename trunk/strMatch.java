@@ -35,11 +35,37 @@ public class strMatch  {
 	}
        
  
-
+        //David driving
 	public static void main(String[] args)  {
-         try{  
-	 String p1 = new String("beer");
-	 System.out.println(RK(p1, "test1.txt") );
+         try{
+           String patternFile = args[0];
+           String textFile = args[1];
+           String outputFile = args[2];
+           String pat = readPattern(patternFile);
+           ArrayList<String> patterns = parsePattern( readPattern( patternFile) );
+           FileOutputStream out = new FileOutputStream(outputFile);
+           PrintStream writer = new PrintStream(out);
+           writer.println(pat);
+           writer.println(" ---------------------------------------");
+           for ( String pattern : patterns) {
+             boolean found = RK(pattern, textFile);
+             
+             if (found)
+               writer.println("RK MATCHED: " + pattern);
+             else
+               writer.println("RK FAILED: " + pattern);
+           }
+           System.out.println("here");
+           for ( String pattern : patterns) {
+             boolean found = KMP(pattern, textFile);
+             
+             if (found)
+               writer.println("KMP MATCHED: " + pattern);
+             else
+               writer.println("KMP FAILED: " + pattern);
+           }
+           
+	 
 	 }
 	 catch(Exception e){
 	    System.err.println(e.getMessage() );
@@ -72,6 +98,7 @@ public class strMatch  {
 
 	//Marcell driving
 	public static boolean RK(String pattern, String inFile) throws Exception{
+	if (pattern.length() == 0) return true;
 		int hashPat = hashPattern(pattern);
 	FileInputStream in = new FileInputStream(inFile);
 	StringBuffer input = new StringBuffer();
@@ -95,11 +122,20 @@ public class strMatch  {
         Queue<Character> q1 = new LinkedList<Character>();
   	for(int i =0; i< text.length(); i++){
 	if(in.available() >0 && (i==text.length()-1 )){
-	     input.delete(0, BUF_SIZE - m );
+	     input.delete(0, BUF_SIZE/2 );
 	while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
-	    input.append( (char) in.read() );
+	    char c = (char) in.read();
+	    if( c == '\r'){
+	     if (in.available() > 0) {
+	      char c2 = (char) in.read();
+	      if( c2 != '\n' ) input.append( '\n' );
+	      c = c2 ;   
+	    }
+	    else c = '\n';
+	    }
+	    input.append( c );
 	}
-	i = i- (BUF_SIZE - m);
+	i = i- (BUF_SIZE / 2);
 	text = input.toString();
 	}
   	int j = 0;
@@ -118,5 +154,81 @@ public class strMatch  {
 	        in.close();
 		return false;
 	} //end RK
+	
+	
+	//David driving
+	public static boolean KMP(String pattern, String inFile) throws Exception{
+	if (pattern.length() == 0) return true;
+	  int[] fail = core(pattern);
+	  FileInputStream in = new FileInputStream(inFile);
+	  StringBuffer input = new StringBuffer();
+	  
+	  while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
+	    char c = (char) in.read();
+	    if( c == '\r'){
+	     if (in.available() > 0) {
+	      char c2 = (char) in.read();
+	      if( c2 != '\n' ) input.append( '\n' );
+	      c = c2 ;   
+	    }
+	    else c = '\n';
+	    }
+	    input.append( c );
+	}
+	String text = input.toString();
+	int n = pattern.length();
+	int l = 0;
+	int r = 0;
+	while( r < text.length() && r - l < n) {
+	  if (l > BUF_SIZE / 2) {
+	    input.delete(0, BUF_SIZE/2 );
+	    while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
+	    char c = (char) in.read();
+	    if( c == '\r'){
+	     if (in.available() > 0) {
+	      char c2 = (char) in.read();
+	      if( c2 != '\n' ) input.append( '\n' );
+	      c = c2 ;   
+	    }
+	    else c = '\n';
+	    }
+	    input.append( c );
+	}
+	l = l- (BUF_SIZE / 2);
+	r = r - (BUF_SIZE / 2);
+	text = input.toString();
+	} //end if
+	
+	if (text.charAt(r) == pattern.charAt(r - l) ) r++;
+	else { // text[r] != pattern[r - l]
+	  if (r == l) {r++; l++;}
+	  else  //r > l
+	     l = r - fail[r - l];  
+	}
+	}//end while
+	
+	if (r - l == n) return true;
+	return false;
+	  
+	}//end KMP
+	
+	public static int[] core (String pattern) {
+	  int m = pattern.length();
+	  int [] result = new int[m];
+	  result[0] = 0;
+	  if (m == 1) return result;
+	  result[1] = 0;
+	  pattern = new String(" " + pattern);
+	  for(int j = 2; j < m; j++) {
+	   int k = result[j - 1];
+	   while (k > 0 && pattern.charAt(j) != pattern.charAt(k+1)) 
+	     k = result[k];  
+	   if ( k == 0 && pattern.charAt(j) != pattern.charAt(k + 1) )
+	     result[j] = 0;
+	   else
+	     result[j] = k + 1;
+	  }
+	  return result;
+	}
 
 } //end strMatch
