@@ -86,6 +86,18 @@ public class strMatch  {
 	   return hashValue;
 	}
 
+	public static int hash1(int pLen, Queue<Character> q, char c){
+	     if(q.size() == pLen){
+	       Character c1 = q.remove();
+	       int temp1 = c1.charValue();
+	       hashValue -= temp1; 
+	     }
+	     int cInt =  c;
+	     hashValue += cInt;
+	     q.offer( new Character(c) );
+	   return hashValue;
+	}
+
 	public static int hashPattern(String str){
 	    Queue<Character> q = new LinkedList<Character>();
 	    int result = 0;
