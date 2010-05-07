@@ -240,6 +240,7 @@ String.valueOf(end - begin));
 	}//end KMP
 	
 	public static int[] core (String pattern) {
+	  assert pattern.length() > 0;
 	  int m = pattern.length();
 	  int [] result = new int[m];
 	  result[0] = 0;
