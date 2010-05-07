@@ -48,14 +48,21 @@ public class strMatch  {
            writer.println(pat);
            writer.println(" ---------------------------------------");
            for ( String pattern : patterns) {
+             long begin = System.currentTimeMillis();
              boolean found = RK(pattern, textFile);
+             long end = System.currentTimeMillis();
+             System.out.println("Time - RK: " + pattern + ": " + String.valueOf(end - begin));
              if (found)
                writer.println("RK MATCHED: " + pattern);
              else
                writer.println("RK FAILED: " + pattern);
            }
            for ( String pattern : patterns) {
+             long begin = System.currentTimeMillis();
              boolean found = KMP(pattern, textFile);
+             long end = System.currentTimeMillis();
+             System.out.println("Time - KMP: " + pattern + ": " + 
+String.valueOf(end - begin));
              if (found)
                writer.println("KMP MATCHED: " + pattern);
              else
