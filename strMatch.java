@@ -95,12 +95,14 @@ String.valueOf(end - begin));
 	     if(q.size() == pLen){
 	       Character c1 = q.remove();
 	       int temp1 = c1.charValue();
-	       hashValue -= temp1; 
+	       hashValue -= (temp1 *pLen * 256); 
 	     }
 	     int cInt =  c;
-	     hashValue += cInt;
+	     hashValue += (cInt * ind * 256);
 	     q.offer( new Character(c) );
-	   return hashValue;
+	     if(q.size() == pLen) hashValue *= 256;
+	     assert hashValue>=0;
+	   return hashValue % 1117;
 	}
 
 	public static int hashPattern(String str){
