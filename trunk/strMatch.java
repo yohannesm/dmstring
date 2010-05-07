@@ -5,10 +5,11 @@ import java.util.regex.*;
 
 public class strMatch  {
         
-  final static int BUF_SIZE = 2000;
-  final static int P = 1117;
+  final static int BUF_SIZE = 2000; //Constant buffer size
+  final static int P = 1117; //Constant prime number to mod by
 	static int hashValue = 0;
-        //Copied from our FSM project
+        /*Copied from our FSM project
+        readPattern -- read in a file and return a string*/
         public static String readPattern(String inFile) throws Exception {
 
 	FileInputStream in = new FileInputStream(inFile);
@@ -21,9 +22,11 @@ public class strMatch  {
    	 in.close();
    	 return input.toString();
 	}//end read
+	// ---------------------------------------------------------------
 	
 	//David is driving
 	public static ArrayList<String> parsePattern(String patterns) {
+	        //Use a regular expression to find every pattern between two ampersands
 		Pattern pat = Pattern.compile("&([^&])*&");
 		Matcher mat = pat.matcher(patterns);
 		ArrayList<String> patternList = new ArrayList<String>();
@@ -48,6 +51,8 @@ public class strMatch  {
            PrintStream writer = new PrintStream(out);
            writer.println(pat);
            writer.println(" ---------------------------------------");
+           
+           //Try the RK search with each pattern
            for ( String pattern : patterns) {
              long begin = System.currentTimeMillis();
              boolean found = RK(pattern, textFile);
@@ -58,6 +63,8 @@ public class strMatch  {
              else
                writer.println("RK FAILED: " + pattern);
            }
+           
+           //Try the KMP search with each pattern
            for ( String pattern : patterns) {
              long begin = System.currentTimeMillis();
              boolean found = KMP(pattern, textFile);
@@ -93,16 +100,30 @@ String.valueOf(end - begin));
 
 	//Marcell driving
 	public static int hash1(int pLen, Queue<Character> q, char c){
+	 //Rolling hash function - sophisticated version
 	     if(q.size() == pLen){
+	       //Get the character we're removing
 	       Character c1 = q.remove();
+	       
+	       //Get the ASCII value of the old character
 	       int temp1 = c1.charValue();
+	       
+	       //Multiply by 256^(patternLen - 1) and mod by prime number P
 	       temp1 = (moduArith(256, pLen - 1 , P) * temp1) % P;
+	       
+	       //Subtract the result from the previous hashValue and mod by P
 	       hashValue = (hashValue - temp1) % P;
+	       
+	       //NOTE: When Java mods by a number, it does not automatically make it positive.
+	       // we therefore have to use a loop to automatically make the number positive.
 	       while (hashValue < 0) hashValue += P;
 	    
 	     }
+	     
+	     //Multiply the remaining numbers by 256 and mod by P
 	     hashValue = (hashValue * 256) % P;
 	 
+	     //Add the ASCII value of the new character
 	     int cInt =  c;
 	     hashValue = (hashValue + cInt) % P;
 	     q.offer( new Character(c) );
@@ -111,6 +132,8 @@ String.valueOf(end - begin));
 	}
 
 	public static int hashPattern(String str){
+	    //Get the hash value of the passed in string
+	    //This function is only for use with finding the pattern's hash value
             hashValue = 0;
 	    Queue<Character> q = new LinkedList<Character>();
 	    int result = 0;
@@ -129,6 +152,7 @@ String.valueOf(end - begin));
 	FileInputStream in = new FileInputStream(inFile);
 	StringBuffer input = new StringBuffer();
 
+        //Read characters into the buffer, transforming carriage returns as necessary.
 	while(in.available()>0  && (input.length() < BUF_SIZE )){
 	    char c = (char) in.read();
 	    if( c == '\r'){
@@ -146,9 +170,15 @@ String.valueOf(end - begin));
 		
   	int m = pattern.length();
         Queue<Character> q1 = new LinkedList<Character>();
-  	for(int i =0; i< text.length(); i++){ 
+        
+        //Iterate through the text
+  	for(int i =0; i< text.length(); i++){
+  	
+  	//Check to see if we need to fill the buffer 
 	if(in.available() >0 && (i==text.length()-1 )){
-	     input.delete(0, BUF_SIZE/2 );
+	     input.delete(0, BUF_SIZE/2 );  
+	
+	//Fill the buffer
 	while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
 	    char c = (char) in.read();
 	    if( c == '\r'){
@@ -161,12 +191,16 @@ String.valueOf(end - begin));
 	    }
 	    input.append( c );
 	}
+	//Reposition i since the buffer has changed
 	i = i- (BUF_SIZE / 2);
 	text = input.toString();
-	}
+	} //end if
   	int j = 0;
+  	
+  	//Do the rolling hash
 	hash1(m, q1, text.charAt(i));
 
+               //If the hashValue is a match, check to see if the string is a match
 	       if(hashValue == hashPat && (i-m+1>= 0)){
      		for(j=0; j<m && pattern.charAt(j)==text.charAt(i-m+1+j); j++){
      		}
@@ -186,10 +220,13 @@ String.valueOf(end - begin));
 	//David driving
 	public static boolean KMP(String pattern, String inFile) throws Exception{
 	if (pattern.length() == 0) return true;
+	
+	  //Get the lengths of the cores
 	  int[] fail = core(pattern);
 	  FileInputStream in = new FileInputStream(inFile);
 	  StringBuffer input = new StringBuffer();
 	  
+	  //Read characters into the buffer
 	  while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
 	    char c = (char) in.read();
 	    if( c == '\r'){
@@ -207,7 +244,9 @@ String.valueOf(end - begin));
 	int l = 0;
 	int r = 0;
 	while( r < text.length() && r - l < n) {
+	  //Check to see if the buffer needs to be refilled
 	  if (l > BUF_SIZE / 2) {
+	    //Refill the buffer
 	    input.delete(0, BUF_SIZE/2 );
 	    while(in.available() > 0 && ( input.length() < BUF_SIZE) ){
 	    char c = (char) in.read();
@@ -221,16 +260,18 @@ String.valueOf(end - begin));
 	    }
 	    input.append( c );
 	}
+	//Update L and R since the buffer has been updated
 	l = l- (BUF_SIZE / 2);
 	r = r - (BUF_SIZE / 2);
 	text = input.toString();
 	} //end if
 	
+	// text[r] == pattern[r - l]
 	if (text.charAt(r) == pattern.charAt(r - l) ) r++;
 	else { // text[r] != pattern[r - l]
 	  if (r == l) {r++; l++;}
 	  else  //r > l
-	     l = r - fail[r - l];  
+	     l = r - fail[r - l];
 	}
 	}//end while
 	
@@ -239,14 +280,16 @@ String.valueOf(end - begin));
 	  
 	}//end KMP
 	
+	//David is driving
 	public static int[] core (String pattern) {
+	  //The algorithm is taken straight from the notes, with minor modifications to make it work
 	  assert pattern.length() > 0;
 	  int m = pattern.length();
 	  int [] result = new int[m];
 	  result[0] = 0;
-	  if (m == 1) return result;
+	  if (m == 1) return result; //Edge case: pattern length = 1
 	  result[1] = 0;
-	  pattern = new String(" " + pattern);
+	  pattern = new String(" " + pattern); //The algorithm assumed first index is 1, so pad the beginning
 	  for(int j = 2; j < m; j++) {
 	   int k = result[j - 1];
 	   while (k > 0 && pattern.charAt(j) != pattern.charAt(k+1)) 
