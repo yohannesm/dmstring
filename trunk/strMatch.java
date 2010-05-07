@@ -57,7 +57,7 @@ public class strMatch  {
              long begin = System.currentTimeMillis();
              boolean found = RK(pattern, textFile);
              long end = System.currentTimeMillis();
-             System.out.println("Time - RK: " + pattern + ": " + String.valueOf(end - begin));
+             System.out.println("Time for RK: " + pattern + ": " + String.valueOf(end - begin));
              if (found)
                writer.println("RK MATCHED: " + pattern);
              else
@@ -69,23 +69,46 @@ public class strMatch  {
              long begin = System.currentTimeMillis();
              boolean found = KMP(pattern, textFile);
              long end = System.currentTimeMillis();
-             System.out.println("Time - KMP: " + pattern + ": " + 
+             System.out.println("Time for KMP: " + pattern + ": " + 
 String.valueOf(end - begin));
              if (found)
                writer.println("KMP MATCHED: " + pattern);
              else
                writer.println("KMP FAILED: " + pattern);
            }
-           
-	 
+           for ( String pattern : patterns) {
+             long begin = System.currentTimeMillis();
+             boolean found = javaMatch(pattern, readPattern(textFile) );
+             long end = System.currentTimeMillis();
+             System.out.println("Time for Java built in: " + pattern + ": " + 
+String.valueOf(end - begin));
+             if (found)
+               writer.println("Java MATCHED: " + pattern);
+             else
+               writer.println("Java FAILED: " + pattern);
 	 }
+           for ( String pattern : patterns) {
+             long begin = System.currentTimeMillis();
+             boolean found = naive(pattern, readPattern(textFile) );
+             long end = System.currentTimeMillis();
+             System.out.println("Time for Naive: " + pattern + ": " + 
+String.valueOf(end - begin));
+             if (found)
+               writer.println("naive MATCHED: " + pattern);
+             else
+               writer.println("naive FAILED: " + pattern);
 	 catch(Exception e){
 	    System.err.println(e.getMessage() );
 	 }	
+	 }
 		} //end main
 
 	//Marcell driving
-	//FIXME: need more sophisticated Hash function 
+	
+	public static boolean javaMatch(String pattern, String textFile){
+	        return textFile.contains(pattern);    
+	}
+
 	public static int hash(int pLen, Queue<Character> q, char c){
 	     if(q.size() == pLen){
 	       Character c1 = q.remove();
@@ -328,4 +351,20 @@ String.valueOf(end - begin));
 return c;
 
 }// end moduArith
+
+
+  public static boolean naive(String p, String t){
+  int m = p.length();
+  int n = t.length();
+   
+  for(int i =0; i<=(n-m); i++){
+  int j = 0;
+     for(j=0; j<m && p.charAt(j)==t.charAt(i+j); j++){
+     }
+     if (j==m) 
+         return true;
+     }
+  
+  return false;
+	 }//end naive
 } //end strMatch
