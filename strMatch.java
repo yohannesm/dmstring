@@ -49,16 +49,13 @@ public class strMatch  {
            writer.println(" ---------------------------------------");
            for ( String pattern : patterns) {
              boolean found = RK(pattern, textFile);
-             
              if (found)
                writer.println("RK MATCHED: " + pattern);
              else
                writer.println("RK FAILED: " + pattern);
            }
-           System.out.println("here");
            for ( String pattern : patterns) {
              boolean found = KMP(pattern, textFile);
-             
              if (found)
                writer.println("KMP MATCHED: " + pattern);
              else
@@ -86,6 +83,7 @@ public class strMatch  {
 	   return hashValue;
 	}
 
+	//Marcell driving
 	public static int hash1(int pLen, Queue<Character> q, char c){
 	     if(q.size() == pLen){
 	       Character c1 = q.remove();
@@ -99,6 +97,7 @@ public class strMatch  {
 	}
 
 	public static int hashPattern(String str){
+            hashValue = 0;
 	    Queue<Character> q = new LinkedList<Character>();
 	    int result = 0;
             for(int i=0; i<str.length(); i++){
@@ -111,7 +110,7 @@ public class strMatch  {
 	//Marcell driving
 	public static boolean RK(String pattern, String inFile) throws Exception{
 	if (pattern.length() == 0) return true;
-		int hashPat = hashPattern(pattern);
+        int hashPat = hashPattern(pattern);
 	FileInputStream in = new FileInputStream(inFile);
 	StringBuffer input = new StringBuffer();
 
