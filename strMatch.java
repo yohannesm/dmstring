@@ -4,8 +4,9 @@
 5/6,  2:30pm - 4:30pm, David and Marcell, 4 hours
 5/7, 10:00am -11:00am, David,             1 hour
 5/7,  2:00pm - 5:00pm, David and Marcell, 6 hours
+5/7,  5:00pm - 9:00pm, Marcell 4 hrs
 
-Total time: 14 hours, 13 hours of pair programming
+Total time: 18 hours, 13 hours of pair programming
 */
 
 import java.util.*;
@@ -15,9 +16,14 @@ import java.util.regex.*;
 
 public class strMatch  {
         
-  final static int BUF_SIZE = 2000; //Constant buffer size
+  final static int BUF_SIZE = 20000; //Constant buffer size
+  //12500077
+  //17
+  //1117
   final static int P = 1117; //Constant prime number to mod by
 	static int hashValue = 0;
+	static int collisions = 0;
+	static int comparisons = 0;
         /*Copied from our FSM project
         readPattern -- read in a file and return a string*/
         public static String readPattern(String inFile) throws Exception {
@@ -68,12 +74,15 @@ public class strMatch  {
              boolean found = RK(pattern, textFile);
              long end = System.currentTimeMillis();
              System.out.println("Time for RK: " + pattern + ": " + String.valueOf(end - begin));
-             if (found)
+             System.out.println("Comparisons for RK: " + pattern + ": " + String.valueOf(comparisons));
+	     System.out.println("Collisions for RK:  " + pattern + ": " + String.valueOf(collisions));
+	     if (found)
                writer.println("RK MATCHED: " + pattern);
              else
                writer.println("RK FAILED: " + pattern);
            }
            
+	   /*
            //Try the KMP search with each pattern
            for ( String pattern : patterns) {
              long begin = System.currentTimeMillis();
@@ -81,6 +90,7 @@ public class strMatch  {
              long end = System.currentTimeMillis();
              System.out.println("Time for KMP: " + pattern + ": " + 
 String.valueOf(end - begin));
+             System.out.println("Comparisons for KMP: " + pattern + ": " + String.valueOf(comparisons));
              if (found)
                writer.println("KMP MATCHED: " + pattern);
              else
@@ -107,10 +117,13 @@ String.valueOf(end - begin));
                writer.println("naive MATCHED: " + pattern);
              else
                writer.println("naive FAILED: " + pattern);
+	        }*/
+		}// end try
+
 	 catch(Exception e){
 	    System.err.println(e.getMessage() );
 	 }	
-	 }
+	 
 		} //end main
 
 	//Marcell driving
@@ -154,11 +167,14 @@ String.valueOf(end - begin));
 	     }
 	     
 	     //Multiply the remaining numbers by 256 and mod by P
-	     hashValue = (hashValue * 256) % P;
+	     //hashValue = (hashValue * 256) % P;
+	     hashValue *= 256;
 	 
 	     //Add the ASCII value of the new character
 	     int cInt =  c;
-	     hashValue = (hashValue + cInt) % P;
+	     //hashValue = (hashValue + cInt) % P;
+	     hashValue += cInt;
+	     hashValue %= P;
 	     q.offer( new Character(c) );
 	     assert hashValue>=0;
 	   return hashValue;
@@ -179,6 +195,8 @@ String.valueOf(end - begin));
 
 	//Marcell driving
 	public static boolean RK(String pattern, String inFile) throws Exception{
+	collisions = 0;
+	comparisons = 0;
 	if (pattern.length() == 0) return true;
         int hashPat = hashPattern(pattern);
         
@@ -187,6 +205,7 @@ String.valueOf(end - begin));
 
         //Read characters into the buffer, transforming carriage returns as necessary.
 	while(in.available()>0  && (input.length() < BUF_SIZE )){
+	    
 	    char c = (char) in.read();
 	    if( c == '\r'){
 	     if (in.available() > 0) {
@@ -206,7 +225,7 @@ String.valueOf(end - begin));
         
         //Iterate through the text
   	for(int i =0; i< text.length(); i++){
-  	
+	comparisons++;
   	//Check to see if we need to fill the buffer 
 	if(in.available() >0 && (i==text.length()-1 )){
 	     input.delete(0, BUF_SIZE/2 );  
@@ -235,12 +254,14 @@ String.valueOf(end - begin));
 
                //If the hashValue is a match, check to see if the string is a match
 	       if(hashValue == hashPat && (i-m+1>= 0)){
-     		for(j=0; j<m && pattern.charAt(j)==text.charAt(i-m+1+j); j++){
+     		for(j=0; j<m && pattern.charAt(j)==text.charAt(i-m+1+j); j++){comparisons++;
      		}
      		if (j==m) {
+
 		 in.close();
         	 return true;
 		 }
+		 collisions++;
      		}
 		
   
@@ -252,6 +273,7 @@ String.valueOf(end - begin));
 	
 	//David driving
 	public static boolean KMP(String pattern, String inFile) throws Exception{
+	comparisons = 0;
 	if (pattern.length() == 0) return true;
 	
 	  //Get the lengths of the cores
@@ -277,6 +299,7 @@ String.valueOf(end - begin));
 	int l = 0;
 	int r = 0;
 	while( r < text.length() && r - l < n) {
+	comparisons++;
 	  //Check to see if the buffer needs to be refilled
 	  if (l > BUF_SIZE / 2) {
 	    //Refill the buffer
