@@ -16,11 +16,11 @@ import java.util.regex.*;
 
 public class strMatch  {
         
-  final static int BUF_SIZE = 20000; //Constant buffer size
+  final static int BUF_SIZE = 512000; //Constant buffer size
   //12500077
   //17
-  //1117
-  final static int P = 1117; //Constant prime number to mod by
+  //1117 , 7919
+  final static int P = 7919; //Constant prime number to mod by
 	static int hashValue = 0;
 	static int collisions = 0;
 	static int comparisons = 0;
@@ -67,22 +67,22 @@ public class strMatch  {
            PrintStream writer = new PrintStream(out);
            writer.println(pat);
            writer.println(" ---------------------------------------");
-           
+        
+	/*
            //Try the RK search with each pattern
            for ( String pattern : patterns) {
              long begin = System.currentTimeMillis();
              boolean found = RK(pattern, textFile);
              long end = System.currentTimeMillis();
              System.out.println("Time for RK: " + pattern + ": " + String.valueOf(end - begin));
-             System.out.println("Comparisons for RK: " + pattern + ": " + String.valueOf(comparisons));
-	     System.out.println("Collisions for RK:  " + pattern + ": " + String.valueOf(collisions));
+             System.out.println("Comparisons for RK: : " + String.valueOf(comparisons));
+	     System.out.println("Collisions for RK:  : " + String.valueOf(collisions));
 	     if (found)
                writer.println("RK MATCHED: " + pattern);
              else
                writer.println("RK FAILED: " + pattern);
-           }
+           }*/
            
-	   /*
            //Try the KMP search with each pattern
            for ( String pattern : patterns) {
              long begin = System.currentTimeMillis();
@@ -90,12 +90,13 @@ public class strMatch  {
              long end = System.currentTimeMillis();
              System.out.println("Time for KMP: " + pattern + ": " + 
 String.valueOf(end - begin));
-             System.out.println("Comparisons for KMP: " + pattern + ": " + String.valueOf(comparisons));
+             System.out.println("Comparisons for KMP: " + ": " + String.valueOf(comparisons));
              if (found)
                writer.println("KMP MATCHED: " + pattern);
              else
                writer.println("KMP FAILED: " + pattern);
            }
+	   /*
            for ( String pattern : patterns) {
              long begin = System.currentTimeMillis();
              boolean found = javaMatch(pattern, readPattern(textFile) );
